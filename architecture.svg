@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="660" height="595" viewBox="0 0 660 595" role="img" aria-labelledby="title description">
+  <title id="title">Checklist Production Pipeline</title>
+  <desc id="description">Fictional briefs enter batch preparation. Invalid briefs stop with a validation event. A reviewer approves or discards the exact rendered PDF. The approved product is written to a mock catalog and verified by readback.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10Z" fill="#282828"/>
+    </marker>
+  </defs>
+  <rect width="660" height="595" fill="#fff"/>
+  <g font-family="system-ui, sans-serif" font-size="17" fill="#161616">
+    <rect x="20" y="18" width="418" height="557" rx="10" fill="#fafafa" stroke="#282828" stroke-width="1.4" stroke-dasharray="6 5"/>
+<text x="36" y="45" text-anchor="start" font-size="15">Offline checklist pipeline</text>
+<rect x="78" y="62" width="244" height="44" rx="10" fill="#fff" stroke="#282828" stroke-width="1.4"/>
+<text x="200.0" y="90" text-anchor="middle" font-size="17">Prepare batch</text>
+<rect x="460" y="62" width="180" height="44" rx="10" fill="#fff" stroke="#282828" stroke-width="1.4" stroke-dasharray="6 5"/>
+<text x="550.0" y="90" text-anchor="middle" font-size="17">Synthetic briefs</text>
+<path d="M460 84H323" fill="none" stroke="#282828" stroke-width="1.5" stroke-dasharray="6 5" marker-end="url(#arrow)"/>
+<path d="M200 106V121" fill="none" stroke="#282828" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M200 122l130 38-130 38-130-38Z" fill="#fff" stroke="#282828" stroke-width="1.4"/>
+<text x="200" y="166" text-anchor="middle" font-size="17">Valid brief?</text>
+<text x="352" y="149" text-anchor="middle" font-size="14">No</text>
+<path d="M330 160H369V216" fill="none" stroke="#282828" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="309" y="217" width="118" height="44" rx="10" fill="#fff" stroke="#282828" stroke-width="1.4"/>
+<text x="368.0" y="245" text-anchor="middle" font-size="17">Log failure</text>
+<text x="213" y="210" text-anchor="start" font-size="14">Yes</text>
+<path d="M200 198V222" fill="none" stroke="#282828" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="78" y="223" width="225" height="44" rx="10" fill="#fff" stroke="#282828" stroke-width="1.4"/>
+<text x="190.5" y="251" text-anchor="middle" font-size="17">Render checklist PDF</text>
+<path d="M190 267V283" fill="none" stroke="#282828" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="78" y="284" width="225" height="44" rx="10" fill="#fff" stroke="#282828" stroke-width="1.4"/>
+<rect x="83" y="289" width="215" height="34" rx="10" fill="#fff" stroke="#282828" stroke-width="1.4"/>
+<text x="190.5" y="312" text-anchor="middle" font-size="17">Human review</text>
+<path d="M190 328V344" fill="none" stroke="#282828" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M190 345l130 38-130 38-130-38Z" fill="#fff" stroke="#282828" stroke-width="1.4"/>
+<text x="190" y="389" text-anchor="middle" font-size="17">Approved?</text>
+<text x="345" y="370" text-anchor="middle" font-size="14">No</text>
+<path d="M320 383H367V427" fill="none" stroke="#282828" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="311" y="428" width="111" height="44" rx="10" fill="#fff" stroke="#282828" stroke-width="1.4"/>
+<text x="366.5" y="456" text-anchor="middle" font-size="17">Discard</text>
+<text x="202" y="436" text-anchor="start" font-size="14">Yes</text>
+<path d="M190 421V449" fill="none" stroke="#282828" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="78" y="450" width="225" height="44" rx="10" fill="#fff" stroke="#282828" stroke-width="1.4"/>
+<text x="190.5" y="478" text-anchor="middle" font-size="17">Record publish attempt</text>
+<path d="M190 494V510" fill="none" stroke="#282828" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="78" y="511" width="225" height="44" rx="10" fill="#fff" stroke="#282828" stroke-width="1.4"/>
+<text x="190.5" y="539" text-anchor="middle" font-size="17">Verify catalog receipt</text>
+<rect x="460" y="511" width="180" height="44" rx="10" fill="#fff" stroke="#282828" stroke-width="1.4" stroke-dasharray="6 5"/>
+<text x="550.0" y="539" text-anchor="middle" font-size="17">Mock catalog</text>
+<path d="M303 524H459" fill="none" stroke="#282828" stroke-width="1.5" stroke-dasharray="6 5" marker-end="url(#arrow)"/>
+<path d="M460 541H304" fill="none" stroke="#282828" stroke-width="1.5" stroke-dasharray="6 5" marker-end="url(#arrow)"/>
+  </g>
+</svg>
