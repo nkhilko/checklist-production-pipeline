@@ -43,20 +43,36 @@ class PipelineTest(unittest.TestCase):
             self.assertEqual(db.execute("SELECT count(*) FROM products").fetchone()[0], 1)
 
     def test_retry_after_pre_write_failure_and_conflicting_readback(self):
-        class Unavailable:
+        class Unavailable(MockCatalog):
             def publish(self, *args, **kwargs):
                 raise ConnectionError
 
         digest = self.pipeline.batch([BRIEF])[0]["digest"]
         self.pipeline.review(digest, "approved", "test-reviewer")
         with self.assertRaises(ConnectionError):
-            self.pipeline.publish(digest, Unavailable())
+            self.pipeline.publish(digest, Unavailable(self.catalog.path))
         self.assertEqual(self.pipeline.retry(digest, self.catalog), "published")
 
         other = self.pipeline.batch([("Other workshop", BRIEF[1])])[0]["digest"]
         self.pipeline.review(other, "approved", "test-reviewer")
         with self.assertRaises(ConnectionError):
-            self.pipeline.publish(other, Unavailable())
+            self.pipeline.publish(other, Unavailable(self.catalog.path))
         self.catalog.publish(other, "Placeholder", b"different asset")
         self.assertEqual(self.pipeline.retry(other, self.catalog), "publishing")
         self.assertEqual(self.catalog.read(other), b"different asset")
+
+    def test_conflicting_title_with_identical_pdf_and_destination_substitution(self):
+        digest = self.pipeline.batch([BRIEF])[0]["digest"]
+        self.pipeline.review(digest, "approved", "test-reviewer")
+        title, pdf = self.pipeline.asset(digest)
+        self.catalog.publish(digest, "Unexpected title", pdf)
+        self.assertEqual(self.pipeline.publish(digest, self.catalog), "publishing")
+        self.assertEqual(self.pipeline.retry(digest, self.catalog), "publishing")
+        with closing(sqlite3.connect(self.catalog.path)) as db, db:
+            db.execute("UPDATE products SET title = ? WHERE digest = ?", (title, digest))
+        self.assertEqual(self.pipeline.reconcile(digest, self.catalog), "published")
+        substitute = MockCatalog(self.catalog.path.with_name("replacement.sqlite"))
+        with self.assertRaisesRegex(ValueError, "matching catalog"):
+            self.pipeline.reconcile(digest, substitute)
+        self.assertIsNone(substitute.read(digest))
+        self.assertEqual(self.pipeline.reconcile(digest, MockCatalog(self.catalog.path)), "published")

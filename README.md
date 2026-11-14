@@ -20,8 +20,11 @@ The demo prepares two checklists from fictional research notes and rejects a mal
 - Prepare up to eight drafts concurrently. Invalid briefs get individual results and a durable validation event without blocking valid items.
 - Render a one-page PDF and key reviews by its SHA-256 digest. An edited PDF needs its own decision. Duplicate submissions keep the existing decision.
 - Record an explicit reviewer and approval or discard decision before any publication. The example supplies a fictional reviewer.
-- Journal the attempt before writing. Retry checks the catalog first. Matching bytes complete the product; conflicting bytes keep it unresolved.
+- Journal the attempt before writing. Retry checks the catalog first. Matching title and PDF bytes complete the product. Conflicting readback stays unresolved.
+- The first publish attempt binds the product to the mock catalog's stored identity. A reopened catalog with the same identity can reconcile it. A replacement catalog or an older attempt without identity is rejected. Completion is a historical receipt for that catalog; it does not monitor later changes.
 
 The generation step deterministically turns synthetic notes into checklist items. The catalog is a separate local SQLite database. The demo models the production workflow's handoffs without requiring an AI service, messaging account, external renderer or commerce provider.
+
+The SQLite files and caller-supplied reviewer name are trusted demo inputs. Reviewer names are unauthenticated. Keep both databases together, or start a fresh demo for older unbound attempts.
 
 [MIT License](LICENSE), copyright PrivateData.

@@ -6,6 +6,7 @@ import io
 import json
 from pathlib import Path
 import sqlite3
+from uuid import uuid4
 import textwrap
 
 
@@ -69,6 +70,16 @@ class MockCatalog:
         self.path = path
         with closing(sqlite3.connect(path)) as db, db:
             db.execute("CREATE TABLE IF NOT EXISTS products (digest TEXT PRIMARY KEY, title TEXT, pdf BLOB)")
+            db.execute("CREATE TABLE IF NOT EXISTS identity (singleton INTEGER PRIMARY KEY, value TEXT NOT NULL)")
+            db.execute("INSERT OR IGNORE INTO identity VALUES (1, ?)", (uuid4().hex,))
+
+    @property
+    def identity(self):
+        with closing(sqlite3.connect(self.path)) as db:
+            row = db.execute("SELECT value FROM identity WHERE singleton = 1").fetchone()
+        if row is None:
+            raise ValueError("Missing destination identity")
+        return row[0]
 
     def publish(self, digest, title, pdf, *, lose_receipt=False):
         with closing(sqlite3.connect(self.path)) as db, db:
@@ -77,9 +88,12 @@ class MockCatalog:
             raise ReceiptLost
 
     def read(self, digest):
+        product = self.listing(digest)
+        return product[1] if product else None
+
+    def listing(self, digest):
         with closing(sqlite3.connect(self.path)) as db:
-            row = db.execute("SELECT pdf FROM products WHERE digest = ?", (digest,)).fetchone()
-        return row[0] if row else None
+            return db.execute("SELECT title, pdf FROM products WHERE digest = ?", (digest,)).fetchone()
 
 
 class Pipeline:
@@ -88,6 +102,9 @@ class Pipeline:
         with closing(sqlite3.connect(path)) as db, db:
             db.execute("""CREATE TABLE IF NOT EXISTS products (
                 digest TEXT PRIMARY KEY, title TEXT, pdf BLOB, state TEXT, reviewer TEXT
+            )""")
+            db.execute("""CREATE TABLE IF NOT EXISTS destinations (
+                digest TEXT PRIMARY KEY, catalog_id TEXT NOT NULL
             )""")
             db.execute("""CREATE TABLE IF NOT EXISTS events (
                 sequence INTEGER PRIMARY KEY, digest TEXT, action TEXT
@@ -122,7 +139,7 @@ class Pipeline:
             raise ValueError("Expected an explicit decision and reviewer")
         self._transition(digest, "pending", decision, reviewer)
 
-    def _transition(self, digest, previous, state, reviewer=None):
+    def _transition(self, digest, previous, state, reviewer=None, *, catalog_id=None):
         with closing(sqlite3.connect(self.path)) as db, db:
             updated = db.execute(
                 "UPDATE products SET state = ?, reviewer = coalesce(?, reviewer) WHERE digest = ? AND state = ?",
@@ -130,6 +147,8 @@ class Pipeline:
             )
             if updated.rowcount != 1:
                 raise ValueError(f"Expected {previous} state for this checklist")
+            if catalog_id is not None:
+                db.execute("INSERT INTO destinations VALUES (?, ?)", (digest, catalog_id))
             db.execute("INSERT INTO events(digest, action) VALUES (?, ?)", (digest, state))
 
     def asset(self, digest):
@@ -140,7 +159,7 @@ class Pipeline:
         return row
 
     def publish(self, digest, catalog, *, lose_receipt=False):
-        self._transition(digest, "approved", "publishing")
+        self._transition(digest, "approved", "publishing", catalog_id=catalog.identity)
         title, pdf = self.asset(digest)
         try:
             catalog.publish(digest, title, pdf, lose_receipt=lose_receipt)
@@ -159,12 +178,14 @@ class Pipeline:
 
     def reconcile(self, digest, catalog):
         with closing(sqlite3.connect(self.path)) as db:
-            row = db.execute("SELECT state, pdf FROM products WHERE digest = ?", (digest,)).fetchone()
+            row = db.execute("SELECT state, title, pdf, catalog_id FROM products LEFT JOIN destinations USING (digest) WHERE digest = ?", (digest,)).fetchone()
         if row is None or row[0] not in {"publishing", "published"}:
             raise ValueError("Expected an existing publish attempt")
+        if row[3] != catalog.identity:
+            raise ValueError("Publish attempt has no matching catalog receipt")
         if row[0] == "published":
             return "published"
-        if catalog.read(digest) != row[1]:
+        if catalog.listing(digest) != (row[1], row[2]):
             return "publishing"
         try:
             self._transition(digest, "publishing", "published")
